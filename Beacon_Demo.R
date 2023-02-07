@@ -8,6 +8,7 @@
 
 ########load required libraries
 
+
 library(tidyverse)
 beac #load tidyverse
 #####
@@ -181,3 +182,63 @@ ggsave("Figure1.pdf",beacon_SST_2010,width = 10, height = 6.5) # width and heigh
 library(plotly)
 ggplotly(beacon_SST_2010) # creates an interactive ggplot
 
+#######Day 4 coding in R
+# well focus on a monthly climatology
+
+# we see that month is the 5th and 6th character of date variable
+# we can use subscript to select 5th and 6th character from date column to get the month and create a new month column
+
+beacon$month = as.numeric(substr(beacon$Date,5,6)) - 0.5 #beacon$month creates column at end of beacon
+
+beacon_dates = beacon[complete.cases(beacon$Date),]
+unique(beacon_dates$month) # shows unique values
+unique(beacon$month)# shows unique values
+
+# we decide we want to show the full time series of data and also the monthly climatology so we can start with the full time series
+temperature_ts_plot =
+  ggplot()+
+  geom_line(data=beacon_dates,aes(x=DecimalDate, y=Temperature, group=ReefSiteName,color=ReefSiteName),size =1)+
+  xlab("Year")+
+  ylab("Temperature(*C)")+
+  scale_x_continuous(breaks = seq(2000,2032,0.5))+
+  scale_y_continuous(limits=c(16,32),breaks=seq(16,32,2))+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(color="black"),
+        text = element_text(size = 24),
+        legend.position= "top",
+        plot.title = element_text(hjust = 0.5))
+
+temperature_ts_plot
+
+#install.packages("Hmisc")
+library(Hmisc)
+
+beacon_climatology =
+  beacon_dates %>% 
+  group_by(ReefSiteName,month) %>% 
+  summarise(ci = list(mean_cl_normal(Temperature) %>%  #compute mean +- 95%
+                        rename(Temp_mean=y,Temp_lwr=ymin,Temp_upr=ymax))) %>% 
+  unnest(cols=c(ci)) # unnest the output list so it goes back to a logical dataframe
+
+
+view(beacon_climatology)
+
+temperature_climate_plot =
+  ggplot()+
+  geom_line(data=beacon_climatology,aes(x=month, y=Temp_mean, group=ReefSiteName,color=ReefSiteName),size =1,alpha =0.7)+
+  geom_ribbon(data=beacon_climatology,aes(x=month, y=Temp_mean,ymin=Temp_lwr,ymax=Temp_upr, group=ReefSiteName,fill=ReefSiteName),alpha =0.2)+
+  xlab("Month")+
+  ylab("Temperature(*C)")+
+  scale_x_continuous(breaks = seq(0,12,1))+
+  scale_y_continuous(limits=c(16,32),breaks=seq(16,32,2))+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(color="black"),
+        text = element_text(size = 24),
+        legend.position= "top",
+        plot.title = element_text(hjust = 0.5))
+
+temperature_climate_plot
