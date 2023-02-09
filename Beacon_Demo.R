@@ -10,7 +10,7 @@
 
 
 library(tidyverse)
-beac #load tidyverse
+#load tidyverse
 #####
 # Intro to Using R
 x = 3 #assigns the number 3 to variable x
@@ -30,10 +30,10 @@ z = log10(y) # this is also log_10 of y
 ##############################################################################
 #Part 2: Introduction to Packages
 ###############################################
-#install.packages('tidyverse') # this installs the tidyverse package from online, you need quotes for install packages
+##install.packages('tidyverse') # this installs the tidyverse package from online, you need quotes for install packages
 #library(tidyverse)# the library function loads our package tidyverse, no quotes needed for library
-#install.packages("ggplot2")
-#install.packages("munsell")
+##install.packages("ggplot2")
+##install.packages("munsell")
 # I only need to install once, no need to keep the code here
 ##############################################################
 ##### Lets import our data
@@ -200,6 +200,7 @@ temperature_ts_plot =
   geom_line(data=beacon_dates,aes(x=DecimalDate, y=Temperature, group=ReefSiteName,color=ReefSiteName),size =1)+
   xlab("Year")+
   ylab("Temperature(*C)")+
+  ggtitle("(a)")+
   scale_x_continuous(breaks = seq(2000,2032,0.5))+
   scale_y_continuous(limits=c(16,32),breaks=seq(16,32,2))+
   theme(panel.grid.major = element_blank(),
@@ -207,12 +208,12 @@ temperature_ts_plot =
         panel.background = element_blank(),
         axis.line = element_line(color="black"),
         text = element_text(size = 24),
-        legend.position= "top",
+        #legend.position= "top",
         plot.title = element_text(hjust = 0.5))
 
 temperature_ts_plot
 
-#install.packages("Hmisc")
+##install.packages("Hmisc")
 library(Hmisc)
 
 beacon_climatology =
@@ -231,6 +232,7 @@ temperature_climate_plot =
   geom_ribbon(data=beacon_climatology,aes(x=month, y=Temp_mean,ymin=Temp_lwr,ymax=Temp_upr, group=ReefSiteName,fill=ReefSiteName),alpha =0.2)+
   xlab("Month")+
   ylab("Temperature(*C)")+
+  ggtitle("(b)")+
   scale_x_continuous(breaks = seq(0,12,1))+
   scale_y_continuous(limits=c(16,32),breaks=seq(16,32,2))+
   theme(panel.grid.major = element_blank(),
@@ -238,7 +240,93 @@ temperature_climate_plot =
         panel.background = element_blank(),
         axis.line = element_line(color="black"),
         text = element_text(size = 24),
-        legend.position= "top",
-        plot.title = element_text(hjust = 0.5))
+        legend.position= "none",
+      
 
-temperature_climate_plot
+
+
+######## Day 5 Coding in R
+
+# Today were going with making multi panel figures
+
+##install.packages("patchwork")
+#library(patchwork),
+#heres our two temp plots
+
+#temperature_ts_plot,
+#temperature_climate_plot
+# now can combine them with using patchwork
+#Figure1 = temperature_climate_plot+temperature_ts_plot
+
+#Figure1
+#Figure1+plot_annotation(tag_levels = 'A')+
+ # plot_layout(guides = 'collect')
+
+
+Figure1 = (temperature_ts_plot+theme(legend.position = 'none'))+
+  (temperature_climate_plot+theme(legend.position = 'right'))+
+  scale_fill_discrete(name = "Site")+
+  scale_color_discrete(name = "Site")+ # legend has to correspond to both color and fill
+  plot_annotation(tag_levels ='A')+
+  plot_layout(guides ='collect')+
+  plot_layout(width = c(2,1.5))
+
+
+##install.packages('maps')
+library(maps)
+
+#lets see where were plotting
+min(beacon_dates$Latitude)
+max(beacon_dates$Latitude)
+min(beacon_dates$Longitude)+360
+max(beacon_dates$Longitude)+360
+
+map = map_data('world',wrap = c(-25,335),ylim=c(-55,75))
+
+map_plot = ggplot()+
+  geom_polygon(data = map,aes(x=long, y=lat, group = group))+ # plots map
+  geom_point(data=beacon_dates,aes(x=Longitude+360,y=Latitude,color = ReefSiteName,shape = ReefSiteName),size =3)+
+  scale_shape_manual(values=c(15,18,16,17))+
+  coord_fixed(ratio=1,xlim = c(295,295.4),ylim = c(32.15,32.5),expand = TRUE)+
+  annotate("text", x = 295.11,y=32.307, label = "Tynes Bay"
+           , size =5,color = "#C77CCF")+
+  annotate("text", x = 295.10,y=32.334, label = "Buoy 33"
+           , size =5,color = "#F8766D")+
+  annotate("text", x = 295.11,y=32.38, label = "Mid Platform"
+           , size =5,color = "#7CAE00")+
+  annotate("text", x = 295.14,y=32.42, label = "North Channel"
+           , size =5,color = "#00BFC4")+
+  ylab("Latitude (N)")+
+  xlab("Longitude (E)")+
+  ggtitle("(c)")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(color="black"),
+        text = element_text(size = 24),)
+        #legend.position= "top",
+        
+
+Figure1 = ((temperature_ts_plot+theme(legend.position = 'none'))+
+  (temperature_climate_plot+theme(legend.position = 'right'))+
+  scale_fill_discrete(name = "Site")+
+  scale_color_discrete(name = "Site")+ # legend has to correspond to both color and fill
+  plot_annotation(tag_levels ='A')+
+  plot_layout(guides ='collect')+
+  plot_layout(width = c(2,1.5)))
+
+
+map_plot/Figure1
+
+Figure1_map = map_plot/Figure1 + plot_layout(width = c(2,1))
+ggsave("Figure1_map.pdf",Figure1_map,width =10, height = 14)
+
+# HW: Create figure 1 for Total Alkalinity instead of Temperature
+
+#first u can start with copying everything into a new script
+#ctrl+f find temperature and replace with TA
+#change name variable
+#update axis limits
+#Delete extra or redundant code
+#Repeat for Fig 1 and copy for fig2
+#Modify figures to make them good and bad
