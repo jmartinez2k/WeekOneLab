@@ -1,0 +1,274 @@
+---
+title: "Good Plot Bad Plot"
+author: "Jose Martinez"
+date: "2023-02-15"
+output: html_document
+
+
+---
+
+```{r setup, include=FALSE}
+########load required libraries
+library(tidyverse)
+library(plotly)
+library(patchwork)
+library(Hmisc)
+library(maps)
+library(rstudioapi)
+library(ggmap)
+library(ggrepel)
+library(tmaptools)
+#load tidyverse
+#####
+beacon = read_csv("beacon_data.csv")
+beacon$month = as.numeric(substr(beacon$Date,5,6)) - 0.5 #beacon$month creates column at end of beacon
+
+beacon_dates = beacon[complete.cases(beacon$Date),]
+unique(beacon_dates$month) # shows unique values
+unique(beacon$month)# shows unique values
+```
+#This is the completed Good plot Bad Plot storyline where the plots play good plot bad plot to get the map plot to snitch out his friend Atlas plot.
+---
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+library(tidyverse)
+library(plotly)
+library(patchwork)
+library(Hmisc)
+library(maps)
+#load tidyverse
+#####
+beacon = read_csv("beacon_data.csv")
+beacon$month = as.numeric(substr(beacon$Date,5,6)) - 0.5 #beacon$month creates column at end of beacon
+
+beacon_dates = beacon[complete.cases(beacon$Date),]
+unique(beacon_dates$month) # shows unique values
+unique(beacon$month)# shows unique values
+```
+
+This is the completed Good plot Bad Plot storyline where the plots play good plot bad plot to get the map plot to snitch out his friend Atlas plot.
+
+Jose M
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+####################################################
+# Chemical Oceanography Data Analysis Class
+# Name: Jose Martinez
+# Contact: jose.martinez203@upr.edu
+# Week(s) One Lab
+# 1/26/23
+####################################################
+TA_ts_bad_plot =
+  ggplot()+
+  geom_line(data=beacon_dates,aes(x=DecimalDate, y=TA, group=ReefSiteName,color=ReefSiteName),size = 1.5)+
+  xlab("Year")+
+  ylab("TOTAL Alkalinity")+
+  ggtitle("(a)")+
+  scale_x_continuous(breaks = seq(2000,2032,2))+
+  scale_y_continuous(limits=c(2000,3000),breaks=seq(2250,2450,40))+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(color="red"),
+        text = element_text(size = 9,color = 'purple'),
+        legend.position= "none",
+        plot.title = element_text(hjust = 0.5))
+#TA_ts_bad_plot
+
+##install.packages("Hmisc")
+
+
+beacon_climatology =
+  beacon_dates %>% 
+  group_by(ReefSiteName,month) %>% 
+  summarise(ci = list(mean_cl_normal(TA) %>%  #compute mean +- 95%
+                        rename(TA_mean=y,TA_lwr=ymin,TA_upr=ymax))) %>% 
+  unnest(cols=c(ci)) # unnest the output list so it goes back to a logical dataframe
+
+
+#view(beacon_climatology)
+
+TA_climate__bad_plot =
+  ggplot()+
+  geom_line(data=beacon_climatology,aes(x=month, y=TA_mean, group=ReefSiteName,color=ReefSiteName),size =1,alpha =0.7)+
+  geom_ribbon(data=beacon_climatology,aes(x=month, y=TA_mean,ymin=TA_lwr,ymax=TA_upr, group=ReefSiteName,fill=ReefSiteName),alpha =0.2)+
+  xlab("Month")+
+  ylab("Total ALKALINITY")+
+  ggtitle("(A)")+
+  scale_x_continuous(breaks = seq(0,12,1))+
+  scale_y_continuous(limits=c(2000,3000),breaks=seq(2000,3000,150))+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(color="black"),
+        text = element_text(size = 9),
+        legend.position= "none",)
+
+#TA_climate__bad_plot
+###################################### 
+# 6. plot map with google
+
+
+
+register_google(key = "AIzaSyDiR6zaf6-zLW35sH_XftY5XkVRqrSuq90")
+
+############################### Google map 
+
+
+mapgg_bad = ggmap(get_googlemap(center = c(lon = -64.775 , lat = 32.325), 
+                            zoom = 13,
+                            maptype = 'terrain',
+                            color = 'color'))+
+  geom_point(data=beacon_dates,aes(x=Longitude,y=Latitude,shape = ReefSiteName,color = ReefSiteName),size = 4)+
+  scale_shape_manual(values=c(15,18,16,17))+
+  scale_fill_discrete(name = "Site")+
+  scale_color_discrete(name = "Site")+
+  #guides(shape = 'none')+
+  #annotate("label", x = -64.11,y=32.307, label = "Tynes Bay"
+  #, size =5,color = "#C77CCF")+
+  #annotate("text", x = 64.10,y=32.334, label = "Buoy 33"
+  #       , size =5,color = "#F8766D")+
+  #annotate("text", x = 64.11,y=32.38, label = "Mid Platform"
+  #      , size =5,color = "#7CAE00")+
+  #annotate("text", x = 64.14,y=32.42, label = "North Channel"
+  #     , size =5,color = "#00BFC4")+
+  ylab("Lat (N)")+
+  xlab("Longitude (E)")+
+  ggtitle("(b)")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(color="black"),
+        text = element_text(size = 10),
+        legend.position= "bottom",)
+#print(mapgg)
+
+
+############# Combine into multi-panel figures
+
+Figure1_bad = ((TA_ts_bad_plot+theme(legend.position = 'none'))+
+             (TA_climate__bad_plot+theme(legend.position = 'top'))+
+             scale_fill_discrete(name = "Site")+
+             scale_color_discrete(name = "Site")+ # legend has to correspond to both color and fill
+             plot_annotation(tag_levels ='A')+
+             plot_layout(guides ='collect')+
+             plot_layout(width = c(5,5)))
+
+Figure1_bad_map = mapgg_bad/Figure1_bad + plot_layout(width = c(3,6))
+print(Figure1_bad_map)
+ggsave("Figure1_bad_BADfinal.pdf",Figure1_bad_map,width =16, height = 8)
+
+########################## 
+# Good plot
+# we decide we want to show the full time series of data and also the monthly climatology so we can start with the full time series
+TA_ts_plot =
+  ggplot()+
+  geom_line(data=beacon_dates,aes(x=DecimalDate, y=TA, group=ReefSiteName,color=ReefSiteName),size = 1.5)+
+  xlab("Year")+
+  ylab("TA")+
+  ggtitle("(A)")+
+  scale_x_continuous(breaks = seq(2000,2032,1))+
+  scale_y_continuous(limits=c(2250,2450),breaks=seq(2250,2450,50))+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(color="black"),
+        text = element_text(size = 9),
+        legend.position= "none",
+        plot.title = element_text(hjust = 0.5))
+#TA_ts_plot
+
+##install.packages("Hmisc")
+
+
+beacon_climatology =
+  beacon_dates %>% 
+  group_by(ReefSiteName,month) %>% 
+  summarise(ci = list(mean_cl_normal(TA) %>%  #compute mean +- 95%
+                        rename(TA_mean=y,TA_lwr=ymin,TA_upr=ymax))) %>% 
+  unnest(cols=c(ci)) # unnest the output list so it goes back to a logical dataframe
+
+
+#view(beacon_climatology)
+
+TA_climate_plot =
+  ggplot()+
+  geom_line(data=beacon_climatology,aes(x=month, y=TA_mean, group=ReefSiteName,color=ReefSiteName),size =1,alpha =0.7)+
+  geom_ribbon(data=beacon_climatology,aes(x=month, y=TA_mean,ymin=TA_lwr,ymax=TA_upr, group=ReefSiteName,fill=ReefSiteName),alpha =0.2)+
+  xlab("Month")+
+  ylab("TA")+
+  ggtitle("(B)")+
+  scale_x_continuous(breaks = seq(0,12,1))+
+  scale_y_continuous(limits=c(2250,2450),breaks=seq(2250,2450,50))+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(color="black"),
+        text = element_text(size = 9),
+        legend.position= "none",)
+#TA_climate_plot
+###################################### 
+# 6. plot map with google
+
+
+
+register_google(key = "AIzaSyDiR6zaf6-zLW35sH_XftY5XkVRqrSuq90")
+
+############################### Google map 
+
+
+mapgg = ggmap(get_googlemap(center = c(lon = -64.775 , lat = 32.325), 
+                            zoom = 11,
+                            maptype = 'satellite',
+                            color = 'color'))+
+  geom_point(data=beacon_dates,aes(x=Longitude,y=Latitude,shape = ReefSiteName,color = ReefSiteName,fill = ReefSiteName),size = 5)+
+  scale_shape_manual(values=c(15,18,16,17))+
+  scale_fill_discrete(name = "Site")+
+  scale_color_discrete(name = "Site")+
+  guides(shape = 'none')+
+  #annotate("label", x = -64.11,y=32.307, label = "Tynes Bay"
+           #, size =5,color = "#C77CCF")+
+  #annotate("text", x = 64.10,y=32.334, label = "Buoy 33"
+    #       , size =5,color = "#F8766D")+
+  #annotate("text", x = 64.11,y=32.38, label = "Mid Platform"
+     #      , size =5,color = "#7CAE00")+
+  #annotate("text", x = 64.14,y=32.42, label = "North Channel"
+      #     , size =5,color = "#00BFC4")+
+  ylab("Latitude (N)")+
+  xlab("Longitude (E)")+
+  ggtitle("(C)")+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.line = element_line(color="black"),
+        text = element_text(size = 10),
+        legend.position= "top",)
+#print(mapgg)
+
+
+############# Combine into multi-panel figures
+
+Figure1 = ((TA_ts_plot+theme(legend.position = 'none'))+
+             (TA_climate_plot+theme(legend.position = 'right'))+
+             scale_fill_discrete(name = "Site")+
+             scale_color_discrete(name = "Site")+ # legend has to correspond to both color and fill
+             plot_annotation(tag_levels ='A')+
+             plot_layout(guides ='collect')+
+             plot_layout(width = c(5,5)))
+
+Figure1_map = mapgg/Figure1 + plot_layout(width = c(2,2))
+print(Figure1_map)
+ggsave("Figure1_GOODfinal.pdf",Figure1_map,width =16, height = 8)
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
