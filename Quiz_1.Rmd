@@ -1,0 +1,117 @@
+---
+title: 'Quiz #1'
+author: "Jose Martinez"
+date: "2023-02-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(plotly)
+library(patchwork)
+library(Hmisc)
+library(maps)
+library(rstudioapi)
+library(ggmap)
+library(ggrepel)
+library(tmaptools)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+####################################################
+# Chemical Oceanography Data Analysis Class
+# Name: Jose Martinez
+# Contact: jose.martinez203@upr.edu
+# Week(s) One Lab : Quiz 1
+# 1/26/23
+####################################################
+# required packages
+#install.packages("lubridate")
+#install.packages("data.table")
+#install.packages("ggrepel")
+#install.packages("dplyr")
+#install.packages("data.table")
+#install.packages("rstudioapi")
+#install.packages(ggmap)
+#install.packages("ggrepel")
+#install.packages("tmaptools")
+
+########load required libraries
+library(tidyverse)
+library(plotly)
+library(patchwork)
+library(Hmisc)
+library(maps)
+library(rstudioapi)
+library(ggmap)
+library(ggrepel)
+library(tmaptools)
+
+kan = read_csv('carbonate_chem_Kaneohe.csv')
+
+view(kan)
+
+# Q1) Is the data tidy? If not, explain how you could make the data tidy.
+# The data is tidy in my opinion
+
+# Q2) Which survey date had the highest mean seawater temperature? Report mean ± standard deviation seawater temperature for each survey date to support your answer.
+
+q2 = select(kan, date:temp)
+
+
+q2_oct = filter(q2,date == "31-Oct-15" & temp)
+
+
+q2_jun = filter(q2,date == "29-Jun-16" & temp)
+
+
+q2_nov = filter(q2,date == "12-Nov-16" & temp)
+
+
+q2_feb = filter(q2,date == "26-Feb-17" & temp)
+
+oct_avg = mean(q2_oct$temp)
+sd_oct = sd(q2_oct$temp)
+
+q2_oct = mutate(q2_oct, AverageTemp = oct_avg, Stdev = sd_oct)
+
+jun_avg = mean(q2_jun$temp)
+sd_jun = sd(q2_jun$temp)
+
+q2_jun = mutate(q2_jun, AverageTemp = jun_avg, Stdev = sd_jun)
+
+nov_avg = mean(q2_nov$temp)
+sd_nov = sd(q2_nov$temp)
+
+q2_nov = mutate(q2_nov, AverageTemp = nov_avg, Stdev = sd_nov)
+
+feb_avg = mean(q2_feb$temp)
+sd_feb = sd(q2_feb$temp)
+
+q2_feb = mutate(q2_feb, AverageTemp = feb_avg, Stdev = sd_feb)
+
+print(q2_oct)
+print(q2_jun)
+print(q2_nov)
+print(q2_feb)
+# October had highest average SST - 27.63697 *C
+
+## Including Plots
+
+
+
+```{r pressure, echo=FALSE}
+q3 = select(kan, reefstatus:dic)
+q3_b = filter(q3,reefstatus == 'Bleached')
+
+
+plot(q3_b$ta,q3_b$dic)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
